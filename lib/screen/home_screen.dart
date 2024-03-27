@@ -29,6 +29,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
 
     scrollController.addListener(scrollListener);
+    fetchData();
   }
 
   @override
@@ -39,6 +40,22 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> fetchData() async {
+    final now = DateTime.now();
+    final fetchTime = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      now.hour,
+    );
+
+    final box = Hive.box<StatModel>(ItemCode.PM10.name);
+    final recent = box.values.last as StatModel;
+
+    if (recent.dataTime.isAtSameMomentAs(fetchTime)) {
+      print('이미 최신 데이터가 있습니다.');
+      return;
+    }
+
     List<Future> futures = [];
 
     for (ItemCode itemCode in ItemCode.values) {
@@ -62,6 +79,20 @@ class _HomeScreenState extends State<HomeScreen> {
       for (StatModel stat in value) {
         box.put(stat.dataTime.toString(), stat);
       }
+
+      final allKeys = box.keys.toList();
+
+      if (allKeys.length > 24) {
+        // start - 시작 인덱스
+        // end - 끝 인덱스
+        // ['red', 'orange', 'yellow', 'green', 'blue']
+        // .sublist(1, 3)
+        // ['orange', 'yellow']
+
+        final deleteKeys = allKeys.sublist(0, allKeys.length - 24);
+
+        box.deleteAll(deleteKeys);
+      }
     }
   }
 
@@ -83,7 +114,7 @@ class _HomeScreenState extends State<HomeScreen> {
         // PM10 (미세먼지)
         // box.value.toList().last
 
-        final recentStat = box.values.toList().first as StatModel;
+        final recentStat = box.values.toList().last as StatModel;
 
         final status = DataUtils.getStatusFromItemCodeAndValue(
           value: recentStat.getLevelFromRegion(region),
