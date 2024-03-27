@@ -40,7 +40,7 @@ class CategoryCard extends StatelessWidget {
               Expanded(
                 child: ListView(
                   scrollDirection: Axis.horizontal,
-                  physics: PageScrollPhysics(),
+                  physics: const PageScrollPhysics(),
                   children: ItemCode.values
                       .map(
                         (ItemCode itemCode) => ValueListenableBuilder<Box>(

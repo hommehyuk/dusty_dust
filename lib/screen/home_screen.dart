@@ -51,9 +51,9 @@ class _HomeScreenState extends State<HomeScreen> {
       );
 
       final box = Hive.box<StatModel>(ItemCode.PM10.name);
-      final recent = box.values.last as StatModel;
 
-      if (recent.dataTime.isAtSameMomentAs(fetchTime)) {
+      if (box.values.isNotEmpty &&
+          (box.values.last as StatModel).dataTime.isAtSameMomentAs(fetchTime)) {
         print('이미 최신 데이터가 있습니다.');
         return;
       }
@@ -98,7 +98,7 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     } on DioError catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text(
             '인터넷 연결이 원활하지 않습니다.',
           ),
@@ -122,6 +122,14 @@ class _HomeScreenState extends State<HomeScreen> {
     return ValueListenableBuilder<Box>(
       valueListenable: Hive.box<StatModel>(ItemCode.PM10.name).listenable(),
       builder: (context, box, widget) {
+        if (box.values.isEmpty) {
+          return const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+
         // PM10 (미세먼지)
         // box.value.toList().last
 
@@ -170,7 +178,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           darkColor: status.darkColor,
                           lightColor: status.lightColor,
                         ),
-                        SizedBox(height: 16.0),
+                        const SizedBox(height: 16.0),
                         ...ItemCode.values.map(
                           (itemCode) {
                             return Padding(
@@ -184,7 +192,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             );
                           },
                         ).toList(),
-                        SizedBox(height: 16.0),
+                        const SizedBox(height: 16.0),
                       ],
                     ),
                   ),
